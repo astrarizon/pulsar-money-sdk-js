@@ -174,4 +174,22 @@ export class Transactions {
 
 		return vestingQuery;
 	}
+
+	static async delegate(address: string, amount: number) {
+		try {
+			const { data: stakeTransaction } = await axios.post('https://pulsar-money.herokuapp.com/transaction/stake', {
+				address,
+				amount,
+			});
+
+			return {
+				data: stakeTransaction,
+				success: stakeTransaction !== undefined,
+			};
+		} catch (err) {
+			return {
+				success: false,
+			};
+		}
+	}
 }
