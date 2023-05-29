@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { CANCEL_PULSAR_PAYMENT, CLAIM_PULSAR_PAYMENT, CREATE_PULSAR_PAYMENT, DEFAULT_FREQUENCY_SECONDS } from '../config';
+import { ChainId, DEFAULT_FREQUENCY_SECONDS, getFeatureUrl } from '../config';
 import { adjustEndDateAccordingToDuration, convertTypeToString, createDateFromTimestampMiliseconds } from '../utils';
 import { PaymentReleaseInput, PaymentTypeAttributes } from './types';
 
@@ -12,8 +12,9 @@ export class Transactions {
 		name: string,
 		type: PaymentTypeAttributes,
 		releases: PaymentReleaseInput[],
+		chainId: ChainId,
 	) {
-		const createPulsarPaymentUrl = CREATE_PULSAR_PAYMENT;
+		const createPulsarPaymentUrl = getFeatureUrl(chainId, 'create_payment');
 
 		const token = tokenId === 'EGLD' ? '' : tokenId;
 
@@ -39,9 +40,11 @@ export class Transactions {
 		}
 	}
 
-	static async claim(astraPayTokenNonces: number[], address: string) {
+	static async claim(astraPayTokenNonces: number[], address: string, chainId: ChainId) {
 		try {
-			const { data: claimTransaction } = await axios.post(CLAIM_PULSAR_PAYMENT, {
+			const claimPulsarPaymentUrl = getFeatureUrl(chainId, 'claim_payment');
+
+			const { data: claimTransaction } = await axios.post(claimPulsarPaymentUrl, {
 				nonces: astraPayTokenNonces,
 				address,
 			});
@@ -57,9 +60,11 @@ export class Transactions {
 		}
 	}
 
-	static async cancel(astraCancelTokenNonces: number[], address: string) {
+	static async cancel(astraCancelTokenNonces: number[], address: string, chainId: ChainId) {
 		try {
-			const { data: cancelTransaction } = await axios.post(CANCEL_PULSAR_PAYMENT, {
+			const cancelPulsarPaymentUrl = getFeatureUrl(chainId, 'cancel_payment');
+
+			const { data: cancelTransaction } = await axios.post(cancelPulsarPaymentUrl, {
 				nonces: astraCancelTokenNonces,
 				address,
 			});
@@ -81,6 +86,7 @@ export class Transactions {
 		releaseTimestampInMiliseconds: number,
 		name: string,
 		address: string,
+		chainId: ChainId,
 	): Promise<any> {
 		const vaultRelease: PaymentReleaseInput = {
 			startDate: createDateFromTimestampMiliseconds(releaseTimestampInMiliseconds - 1000),
@@ -97,6 +103,7 @@ export class Transactions {
 			name,
 			PaymentTypeAttributes.Vault,
 			[vaultRelease],
+			chainId,
 		);
 
 		return lockQuery;
@@ -111,6 +118,7 @@ export class Transactions {
 		token: string,
 		paymentName: string,
 		address: string,
+		chainId: ChainId,
 	): Promise<any> {
 		const release: PaymentReleaseInput = {
 			startDate: createDateFromTimestampMiliseconds(startTimestampInMiliSeconds),
@@ -129,6 +137,7 @@ export class Transactions {
 			paymentName,
 			PaymentTypeAttributes.Payment,
 			[release],
+			chainId,
 		);
 
 		return paymentQuery;
@@ -145,6 +154,7 @@ export class Transactions {
 		cancellable: boolean,
 		identifier: string,
 		name: string,
+		chainId: ChainId,
 	): Promise<any> {
 		const cliffRelease: PaymentReleaseInput = {
 			startDate: createDateFromTimestampMiliseconds(cliffDateInMiliseconds - 1000),
@@ -170,14 +180,17 @@ export class Transactions {
 			name,
 			PaymentTypeAttributes.Vesting,
 			[cliffRelease, vestingRelease],
+			chainId,
 		);
 
 		return vestingQuery;
 	}
 
-	static async delegate(address: string, amount: number) {
+	static async delegate(address: string, amount: number, chainId: ChainId) {
 		try {
-			const { data: stakeTransaction } = await axios.post('https://pulsar-money.herokuapp.com/transaction/stake', {
+			const delegateUrl = getFeatureUrl(chainId, 'delegate');
+
+			const { data: stakeTransaction } = await axios.post(delegateUrl, {
 				address,
 				amount,
 			});
