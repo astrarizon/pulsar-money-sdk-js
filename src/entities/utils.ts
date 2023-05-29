@@ -21,8 +21,8 @@ export const createUTCDateFromTimestampMiliseconds = (timestamp: number) => {
 	return date.toISOString();
 };
 
-export const adjustEndDateAccordingToDuration = (startDate: number, endDate: number, duration: number) => {
-	const noOfIntervals = Math.round((endDate - startDate) / duration);
+export const adjustEndDateAccordingToDuration = (startDate: number, endDate: number, releaseDuration: number) => {
+	const noOfIntervals = Math.round((endDate - startDate) / releaseDuration);
 
-	return startDate + duration * noOfIntervals;
+	return startDate + releaseDuration * noOfIntervals;
 };
