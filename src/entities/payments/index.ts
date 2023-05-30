@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ChainId, DEFAULT_FREQUENCY_SECONDS, getFeatureUrl } from '../config';
+import { DEFAULT_FREQUENCY_SECONDS, getFeatureUrl } from '../config';
 import { adjustEndDateAccordingToDuration, convertTypeToString, createDateFromTimestampMiliseconds } from '../utils';
 import { PaymentReleaseInput, PaymentTypeAttributes } from './types';
 
@@ -12,7 +12,7 @@ export class Transactions {
 		name: string,
 		type: PaymentTypeAttributes,
 		releases: PaymentReleaseInput[],
-		chainId: ChainId,
+		chainId: 'mainnet' | 'devnet' | 'testnet',
 	) {
 		const createPulsarPaymentUrl = getFeatureUrl(chainId, 'create_payment');
 
@@ -40,7 +40,7 @@ export class Transactions {
 		}
 	}
 
-	static async claim(astraPayTokenNonces: number[], address: string, chainId: ChainId) {
+	static async claim(astraPayTokenNonces: number[], address: string, chainId: 'mainnet' | 'devnet' | 'testnet') {
 		try {
 			const claimPulsarPaymentUrl = getFeatureUrl(chainId, 'claim_payment');
 
@@ -60,7 +60,7 @@ export class Transactions {
 		}
 	}
 
-	static async cancel(astraCancelTokenNonces: number[], address: string, chainId: ChainId) {
+	static async cancel(astraCancelTokenNonces: number[], address: string, chainId: 'mainnet' | 'devnet' | 'testnet') {
 		try {
 			const cancelPulsarPaymentUrl = getFeatureUrl(chainId, 'cancel_payment');
 
@@ -86,7 +86,7 @@ export class Transactions {
 		releaseTimestampInMiliseconds: number,
 		name: string,
 		address: string,
-		chainId: ChainId,
+		chainId: 'mainnet' | 'devnet' | 'testnet',
 	): Promise<any> {
 		const vaultRelease: PaymentReleaseInput = {
 			startDate: createDateFromTimestampMiliseconds(releaseTimestampInMiliseconds - 1000),
@@ -118,7 +118,7 @@ export class Transactions {
 		token: string,
 		paymentName: string,
 		address: string,
-		chainId: ChainId,
+		chainId: 'mainnet' | 'devnet' | 'testnet',
 	): Promise<any> {
 		const release: PaymentReleaseInput = {
 			startDate: createDateFromTimestampMiliseconds(startTimestampInMiliSeconds),
@@ -154,7 +154,7 @@ export class Transactions {
 		cancellable: boolean,
 		identifier: string,
 		name: string,
-		chainId: ChainId,
+		chainId: 'mainnet' | 'devnet' | 'testnet',
 	): Promise<any> {
 		const cliffRelease: PaymentReleaseInput = {
 			startDate: createDateFromTimestampMiliseconds(cliffDateInMiliseconds - 1000),
@@ -186,7 +186,7 @@ export class Transactions {
 		return vestingQuery;
 	}
 
-	static async delegate(address: string, amount: number, chainId: ChainId) {
+	static async delegate(address: string, amount: number, chainId: 'mainnet' | 'devnet' | 'testnet') {
 		try {
 			const delegateUrl = getFeatureUrl(chainId, 'delegate');
 
