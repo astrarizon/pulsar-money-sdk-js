@@ -12,7 +12,7 @@ export const BASE_URLS: IBASE_URLS = {
 export type FEATURE_TYPE = 'create_payment' | 'claim_payment' | 'cancel_payment' | 'delegate';
 
 export const getFeatureUrl = (chain: 'testnet' | 'devnet' | 'mainnet', feature: FEATURE_TYPE) => {
-	const url = BASE_URLS[`${chain}` as keyof typeof BASE_URLS];
+	const url = BASE_URLS[chain];
 
 	switch (feature) {
 		case 'create_payment':
