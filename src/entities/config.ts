@@ -5,7 +5,7 @@ interface IBASE_URLS {
 }
 
 export const BASE_URLS: IBASE_URLS = {
-	mainnet: 'https://pulsar-money-prod.herokuapp.com',
+	mainnet: 'https://pulsar-money.herokuapp.com',
 	devnet: 'https://pulsar-money-devnet.herokuapp.com',
 	testnet: 'https://pulsar-money-testnet.herokuapp.com',
 };
@@ -24,13 +24,13 @@ export const getFeatureUrl = (chain: 'testnet' | 'devnet' | 'mainnet', feature: 
 		case 'delegate':
 			return `${url}${DELEGATE_ENDPOINT}`;
 		default:
-			throw new Error('Invalid feature type.');
+			throw new Error(`Invalid feature type. ${feature}`);
 	}
 };
 
-const CREATE_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/create`;
-const CLAIM_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/claim`;
-const CANCEL_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/cancel`;
-const DELEGATE_ENDPOINT = `/transaction/stake`;
+export const CREATE_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/create`;
+export const CLAIM_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/claim`;
+export const CANCEL_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/cancel`;
+export const DELEGATE_ENDPOINT = `/transaction/stake`;
 
 export const DEFAULT_FREQUENCY_SECONDS = 1;
