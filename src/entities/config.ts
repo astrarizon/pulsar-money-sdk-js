@@ -5,7 +5,7 @@ interface IBASE_URLS {
 }
 
 export const BASE_URLS: IBASE_URLS = {
-	mainnet: 'https://pulsar-money.herokuapp.com',
+	mainnet: 'https://pulsar-money-prod.herokuapp.com',
 	devnet: 'https://pulsar-money-devnet.herokuapp.com',
 	testnet: 'https://pulsar-money-testnet.herokuapp.com',
 };
