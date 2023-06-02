@@ -40,7 +40,7 @@ export class Transactions {
 		}
 	}
 
-	static async claim(astraPayTokenNonces: number[], address: string, chainId: 'mainnet' | 'devnet' | 'testnet') {
+	static async claim(astraPayTokenNonces: string[], address: string, chainId: 'mainnet' | 'devnet' | 'testnet') {
 		try {
 			const claimPulsarPaymentUrl = getFeatureUrl(chainId, 'claim_payment');
 
