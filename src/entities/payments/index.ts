@@ -1,6 +1,11 @@
 import axios from 'axios';
-import { DEFAULT_FREQUENCY_SECONDS, getFeatureUrl } from '../config';
-import { adjustEndDateAccordingToDuration, convertTypeToString, createDateFromTimestampMiliseconds } from '../utils';
+import { BASE_URLS, DEFAULT_FREQUENCY_SECONDS, getFeatureUrl, GET_FEE_ENDPOINT } from '../config';
+import {
+	adjustEndDateAccordingToDuration,
+	convertTypeToString,
+	createDateFromTimestampMiliseconds,
+	ONE_SECOND_IN_MILISECONDS,
+} from '../utils';
 import { PaymentReleaseInput, PaymentTypeAttributes } from './types';
 
 export class Transactions {
@@ -16,7 +21,7 @@ export class Transactions {
 	) {
 		const createPulsarPaymentUrl = getFeatureUrl(chainId, 'create_payment');
 
-		const token = tokenId === 'EGLD' ? '' : tokenId;
+		const token = tokenId;
 
 		try {
 			const { data: createPulsarPaymentTransaction } = await axios.post(createPulsarPaymentUrl, {
@@ -89,7 +94,7 @@ export class Transactions {
 		chainId: 'mainnet' | 'devnet' | 'testnet',
 	): Promise<any> {
 		const vaultRelease: PaymentReleaseInput = {
-			startDate: createDateFromTimestampMiliseconds(releaseTimestampInMiliseconds - 1000),
+			startDate: createDateFromTimestampMiliseconds(releaseTimestampInMiliseconds - ONE_SECOND_IN_MILISECONDS),
 			endDate: createDateFromTimestampMiliseconds(releaseTimestampInMiliseconds),
 			amount: amount,
 			duration: DEFAULT_FREQUENCY_SECONDS,
@@ -184,6 +189,19 @@ export class Transactions {
 		);
 
 		return vestingQuery;
+	}
+
+	static async getFee(chainId: 'mainnet' | 'devnet' | 'testnet') {
+		let finalFee = 0;
+		try {
+			const { data: fee } = await axios.get(`${BASE_URLS[chainId]}/${GET_FEE_ENDPOINT}`);
+
+			finalFee = fee;
+		} catch (err) {
+			finalFee = 0;
+		}
+
+		return finalFee;
 	}
 
 	static async delegate(address: string, amount: number, chainId: 'mainnet' | 'devnet' | 'testnet') {

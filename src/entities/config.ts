@@ -11,6 +11,19 @@ export const BASE_URLS: IBASE_URLS = {
 };
 export type FEATURE_TYPE = 'create_payment' | 'claim_payment' | 'cancel_payment' | 'delegate';
 
+export const getContractAddress = (chain: 'testnet' | 'devnet' | 'mainnet') => {
+	switch (chain) {
+		case 'testnet':
+			throw new Error('Not implemented');
+		case 'devnet':
+			return 'erd1qqqqqqqqqqqqqpgqsanann348xhns6qx94rgcq8davw005vnlzhsezyt7t';
+		case 'mainnet':
+			return 'erd1qqqqqqqqqqqqqpgqd6l8ayd0zxfekl53geyxgjzjxu3ceyca60wsje6asx';
+		default:
+			throw new Error(`Invalid chain. ${chain}`);
+	}
+};
+
 export const getFeatureUrl = (chain: 'testnet' | 'devnet' | 'mainnet', feature: FEATURE_TYPE) => {
 	const url = BASE_URLS[chain];
 
@@ -31,6 +44,7 @@ export const getFeatureUrl = (chain: 'testnet' | 'devnet' | 'mainnet', feature: 
 export const CREATE_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/create`;
 export const CLAIM_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/claim`;
 export const CANCEL_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/cancel`;
+export const GET_FEE_ENDPOINT = `/transaction/payment/get-fee`;
 export const DELEGATE_ENDPOINT = `/transaction/stake`;
 
 export const DEFAULT_FREQUENCY_SECONDS = 1;

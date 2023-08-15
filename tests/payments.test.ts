@@ -1,5 +1,7 @@
+import { getContractAddress } from '../src/entities/config';
 import { Transactions } from '../src/entities/payments';
 import { PaymentTypeAttributes } from '../src/entities/payments/types';
+import { numberToBigUintHex, numberToHex } from '../src/entities/utils';
 
 describe('testing payments', () => {
 	test('should correctly get pulsar payment transaction1', async () => {
@@ -22,6 +24,8 @@ describe('testing payments', () => {
 		];
 		const chainId = 'mainnet';
 
+		const fee = await Transactions.getFee(chainId);
+
 		// @ts-ignore
 		const { data: payment } = await Transactions.getPulsarPaymentTransaction(
 			sender,
@@ -34,12 +38,54 @@ describe('testing payments', () => {
 			chainId,
 		);
 
+		const paymentTypeHex = '01';
+		const nameHex = Buffer.from(name, 'utf8').toString('hex');
+		const tokenHex = Buffer.from(tokenId, 'utf8').toString('hex');
+		const cancellableHex = cancellable ? '01' : '00';
+		const receiversHex = receivers
+			.map((receiver) => {
+				return Buffer.from(receiver, 'utf8').toString('hex');
+			})
+			.join('');
+		const feeHex = numberToHex(fee);
+
+		const encodedReleases = releases
+			.map((release) => {
+				const startDate = Math.floor(new Date(release.startDate).getTime() / 1000);
+				const endDate = Math.floor(new Date(release.endDate).getTime() / 1000);
+				const amount = release.amount;
+				const duration = release.duration;
+
+				const startDateHex = numberToHex(startDate).padStart(16, '0');
+				const endDateHex = numberToHex(endDate).padStart(16, '0');
+				const durationHex = numberToHex(duration).padStart(16, '0');
+
+				const amountHex = numberToBigUintHex(amount);
+
+				return `${startDateHex}${endDateHex}${durationHex}${amountHex}`;
+			})
+			.join('');
+
+		const expectedPayload = `create@${paymentTypeHex}@${nameHex}@${cancellableHex}@${receiversHex}@${feeHex}@${encodedReleases}`;
+		const expectedPayloadBase64 = Buffer.from(expectedPayload, 'utf8').toString('base64');
+
+		const totalAmount = releases.reduce((acc, release) => {
+			return acc + release.amount;
+		}, 0);
+
+		let finalValue = 0;
+		if (fee === 1) {
+			finalValue = 2 * totalAmount;
+		} else {
+			finalValue = parseInt(((BigInt(10 ** 18) * BigInt(totalAmount)) / BigInt(1 - fee)).toString());
+		}
+
 		expect(payment).toEqual(
 			expect.objectContaining({
-				value: '1002004008016032064',
+				value: finalValue,
 				receiver: 'erd1qqqqqqqqqqqqqpgqsanann348xhns6qx94rgcq8davw005vnlzhsezyt7t',
 				sender: 'erd1hn6yan3pc7v8v5t4j59shzjppvpnhh3gk6zy9uaegw7kufz5jddsd550pl',
-				data: 'Y3JlYXRlQDAxQDc0NjU3Mzc0NWY2ZTYxNmQ2NUAwMUBiY2Y0NGVjZTIxYzc5ODc2NTE3NTk1MGIwYjhhNDEwYjAzM2JkZTI4YjY4NDQyZjNiOTQzYmQ2ZTI0NTQ5MzViZTgwNjQ0OTRhZWUzYTQzMzcwMTRjZWJlOTExOWFlZmEyNmFjNThiNGU3MmE2NDY2MWFlM2VhY2E2Mjk0ZDNkZEAwMDAwMDAwMDY1OTIwMDgwMDAwMDAwMDA2NTkzNTIwMDAwMDAwMDAwMDAwMDAwMDEwMDAwMDAwODBkZTdkNTU2MjE1MDMxNDA=',
+				data: expectedPayloadBase64,
 				chainID: '1',
 				version: 1,
 			}),
@@ -87,7 +133,7 @@ describe('testing payments', () => {
 		expect(payment).toEqual(
 			expect.objectContaining({
 				value: '0',
-				receiver: 'erd1qqqqqqqqqqqqqpgqsanann348xhns6qx94rgcq8davw005vnlzhsezyt7t',
+				receiver: getContractAddress(chainId),
 				sender: 'erd1hn6yan3pc7v8v5t4j59shzjppvpnhh3gk6zy9uaegw7kufz5jddsd550pl',
 				data: 'RVNEVFRyYW5zZmVyQDU1NTM0NDQzMmQ2MzM3MzY2NjMxNjZAMjAxYjkwQDYzNzI2NTYxNzQ2NUAwMUA3NDY1NzM3NDVmNmU2MTZkNjVAMDBAYmNmNDRlY2UyMWM3OTg3NjUxNzU5NTBiMGI4YTQxMGIwMzNiZGUyOGI2ODQ0MmYzYjk0M2JkNmUyNDU0OTM1YmU4MDY0NDk0YWVlM2E0MzM3MDE0Y2ViZTkxMTlhZWZhMjZhYzU4YjRlNzJhNjQ2NjFhZTNlYWNhNjI5NGQzZGRAMDAwMDAwMDA2NTkyMDA4MDAwMDAwMDAwNjU5MzUyMDAwMDAwMDAwMDAwMDAwMDAxMDAwMDAwMDMwZjRhMTRAMDAwMDAwMDA2NTk0YTM4MDAwMDAwMDAwNjU5NWY1MDAwMDAwMDAwMDAwMDAwMDAyMDAwMDAwMDMxMGQxN2M=',
 				chainID: '1',

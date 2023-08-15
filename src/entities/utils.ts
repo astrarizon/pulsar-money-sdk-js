@@ -36,3 +36,34 @@ export const adjustEndDateAccordingToDuration = (startDate: number, endDate: num
 
 	return startDate + releaseDuration * noOfIntervals;
 };
+
+export const numberToBigUintHex = (nmb: number) => {
+	const nmbHex = numberToHex(nmb);
+	const length = (nmbHex.length / 2).toString();
+
+	return `${length.padStart(8, '0')}${nmbHex}`;
+};
+
+export const numberToHex = (nmb: number) => {
+	let numHex = nmb.toString(16);
+	if (numHex.length % 2) {
+		numHex = '0' + numHex;
+	}
+
+	return numHex;
+};
+
+export const hexToNumber = (hex: string) => {
+	return parseInt(hex, 16);
+};
+
+export const stringToHex = (str: string) => {
+	let hex = '';
+	for (let i = 0; i < str.length; i++) {
+		hex += '' + str.charCodeAt(i).toString(16);
+	}
+
+	return hex;
+};
+
+export const ONE_SECOND_IN_MILISECONDS = 1000;
