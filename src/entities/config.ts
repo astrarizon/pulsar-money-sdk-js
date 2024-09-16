@@ -23,7 +23,7 @@ export const getContractAddress = (chain: "testnet" | "devnet" | "mainnet") => {
     case "testnet":
       throw new Error("Not implemented");
     case "devnet":
-      return "erd1qqqqqqqqqqqqqpgqsanann348xhns6qx94rgcq8davw005vnlzhsezyt7t";
+      return "erd1qqqqqqqqqqqqqpgq7lzhpk6fhd4k4p258uvx9dqcthtvls0muths4yzz93";
     case "mainnet":
       return "erd1qqqqqqqqqqqqqpgqd6l8ayd0zxfekl53geyxgjzjxu3ceyca60wsje6asx";
     default:
