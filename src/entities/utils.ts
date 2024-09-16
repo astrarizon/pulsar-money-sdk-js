@@ -2,12 +2,47 @@ import { Account, Address, GasEstimator, TransferTransactionsFactory } from "@mu
 import { PaymentTypeAttributes } from "./payments/types";
 import { INetworkProvider } from "@multiversx/sdk-network-providers/out/interface";
 import { ApiNetworkProvider } from "@multiversx/sdk-network-providers/out";
-import { MultiversxApiUrls } from "./config";
+import { DEFAULT_FREQUENCY_SECONDS, MultiversxApiUrls } from "./config";
+import BigNumber from "bignumber.js";
 
 const NetworkProviders = {
   mainnet: new ApiNetworkProvider(MultiversxApiUrls.mainnet),
   devnet: new ApiNetworkProvider(MultiversxApiUrls.devnet),
   testnet: new ApiNetworkProvider(MultiversxApiUrls.testnet),
+};
+
+export const getReleases = (startTimestampInMiliSeconds: number, endTimestampInMiliSeconds: number, amount: string, frequency: number) => {
+  let firstEnd = adjustDownEndDateAccordingToDuration(startTimestampInMiliSeconds, endTimestampInMiliSeconds, frequency * 1000);
+  if (firstEnd < startTimestampInMiliSeconds) {
+    firstEnd = startTimestampInMiliSeconds + 1 * 1e3;
+  }
+  const secondEnd = endTimestampInMiliSeconds;
+  const totalTimeDuration = secondEnd - startTimestampInMiliSeconds;
+  const firstReleaseDuration = firstEnd - startTimestampInMiliSeconds;
+  const firstReleaseAmount = new BigNumber(amount).multipliedBy(firstReleaseDuration).dividedBy(totalTimeDuration);
+  const secondReleaseAmount = new BigNumber(amount).minus(firstReleaseAmount);
+  const firstRelease = {
+    startDate: createDateFromTimestampMiliseconds(startTimestampInMiliSeconds),
+    endDate: createDateFromTimestampMiliseconds(firstEnd),
+    amount: bigNumberToPrettyString(firstReleaseAmount),
+    duration: frequency,
+  };
+  const secondRelease = {
+    startDate: createDateFromTimestampMiliseconds(secondEnd - 1e3),
+    endDate: createDateFromTimestampMiliseconds(secondEnd),
+    amount: bigNumberToPrettyString(secondReleaseAmount),
+    duration: DEFAULT_FREQUENCY_SECONDS,
+  };
+  return [firstRelease, secondRelease];
+};
+
+export const adjustDownEndDateAccordingToDuration = (startDate: number, endDate: number, releaseDuration: number) => {
+  const noOfIntervals = Math.floor((endDate - startDate) / releaseDuration);
+  return startDate + releaseDuration * noOfIntervals;
+};
+
+export const bigNumberToPrettyString = (value: BigNumber) => {
+  return value.toFormat({ decimalSeparator: ".", groupSeparator: "" });
 };
 
 export const convertTypeToString = (type: PaymentTypeAttributes) => {

@@ -1,7 +1,8 @@
 import axios from "axios";
 import { BASE_URLS, DEFAULT_FREQUENCY_SECONDS, getFeatureUrl, GET_FEE_ENDPOINT, ONE_SECOND_IN_MILISECONDS } from "../config";
-import { adjustEndDateAccordingToDuration, convertTypeToString, createDateFromTimestampMiliseconds } from "../utils";
-import { PaymentReleaseInput, PaymentTypeAttributes } from "./types";
+import { adjustEndDateAccordingToDuration, bigNumberToPrettyString, convertTypeToString, createDateFromTimestampMiliseconds, getReleases } from "../utils";
+import { PaymentInput, PaymentReleaseInput, PaymentTypeAttributes, RawPaymentInput } from "./types";
+import BigNumber from "bignumber.js";
 
 export class PulsarTransactions {
   private static async getPulsarPaymentTransaction(
@@ -20,13 +21,15 @@ export class PulsarTransactions {
 
     try {
       const { data: createPulsarPaymentTransaction } = await axios.post(createPulsarPaymentUrl, {
-        type: convertTypeToString(type),
-        sender,
-        receivers,
-        cancellable,
-        name,
         token,
-        releases,
+        sender,
+        payment: {
+          type,
+          receivers,
+          cancellable,
+          name,
+          releases,
+        },
       });
 
       return {
@@ -40,12 +43,23 @@ export class PulsarTransactions {
     }
   }
 
-  static async claim(astraPayTokenNonces: string[], address: string, chainId: "mainnet" | "devnet" | "testnet") {
+  static async getPulsarPaymentMultiTransaction(sender: string, tokenId: string, chainId: "testnet" | "devnet" | "mainnet", paymentInputs: PaymentInput[]) {
+    const createPulsarPaymentUrl = getFeatureUrl(chainId, "create_multi");
+    const token = tokenId;
+    const { data: createPulsarPaymentTransaction } = await axios.post(createPulsarPaymentUrl, {
+      token,
+      sender,
+      payments: paymentInputs,
+    });
+    return createPulsarPaymentTransaction;
+  }
+
+  static async claim(fullTokenIds: string[], address: string, chainId: "mainnet" | "devnet" | "testnet") {
     try {
       const claimPulsarPaymentUrl = getFeatureUrl(chainId, "claim_payment");
 
       const { data: claimTransaction } = await axios.post(claimPulsarPaymentUrl, {
-        nonces: astraPayTokenNonces,
+        fullTokenIds,
         address,
       });
 
@@ -82,7 +96,7 @@ export class PulsarTransactions {
 
   static async createVault(
     token: string,
-    amount: number,
+    amount: string,
     releaseTimestampInMiliseconds: number,
     name: string,
     address: string,
@@ -95,16 +109,7 @@ export class PulsarTransactions {
       duration: DEFAULT_FREQUENCY_SECONDS,
     };
 
-    const { data: lockQuery } = await PulsarTransactions.getPulsarPaymentTransaction(
-      address,
-      [address],
-      false,
-      token,
-      name,
-      PaymentTypeAttributes.Vault,
-      [vaultRelease],
-      chainId
-    );
+    const { data: lockQuery } = await PulsarTransactions.getPulsarPaymentTransaction(address, [address], false, token, name, PaymentTypeAttributes.Vault, [vaultRelease], chainId);
 
     return lockQuery;
   }
@@ -112,7 +117,7 @@ export class PulsarTransactions {
   static async createPayment(
     startTimestampInMiliSeconds: number,
     endTimestampInMiliSeconds: number,
-    amount: number,
+    amount: string,
     receivers: string[],
     cancellable: boolean,
     token: string,
@@ -122,9 +127,7 @@ export class PulsarTransactions {
   ): Promise<any> {
     const release: PaymentReleaseInput = {
       startDate: createDateFromTimestampMiliseconds(startTimestampInMiliSeconds),
-      endDate: createDateFromTimestampMiliseconds(
-        adjustEndDateAccordingToDuration(startTimestampInMiliSeconds, endTimestampInMiliSeconds, DEFAULT_FREQUENCY_SECONDS * 1000)
-      ),
+      endDate: createDateFromTimestampMiliseconds(adjustEndDateAccordingToDuration(startTimestampInMiliSeconds, endTimestampInMiliSeconds, DEFAULT_FREQUENCY_SECONDS * 1000)),
       amount: amount,
       duration: DEFAULT_FREQUENCY_SECONDS,
     };
@@ -146,9 +149,9 @@ export class PulsarTransactions {
   static async createVesting(
     sender: string,
     receivers: string[],
-    totalAmount: number,
+    totalAmount: string,
     cliffDateInMiliseconds: number,
-    cliffAmount: number,
+    cliffAmount: string,
     endDateInMiliseconds: number,
     frequency: number,
     cancellable: boolean,
@@ -165,10 +168,8 @@ export class PulsarTransactions {
 
     const vestingRelease: PaymentReleaseInput = {
       startDate: createDateFromTimestampMiliseconds(cliffDateInMiliseconds),
-      endDate: createDateFromTimestampMiliseconds(
-        adjustEndDateAccordingToDuration(cliffDateInMiliseconds, endDateInMiliseconds, frequency * 1000)
-      ),
-      amount: totalAmount - cliffAmount,
+      endDate: createDateFromTimestampMiliseconds(adjustEndDateAccordingToDuration(cliffDateInMiliseconds, endDateInMiliseconds, frequency * 1000)),
+      amount: bigNumberToPrettyString(new BigNumber(totalAmount).minus(new BigNumber(cliffAmount))),
       duration: frequency,
     };
 
@@ -184,6 +185,33 @@ export class PulsarTransactions {
     );
 
     return vestingQuery;
+  }
+
+  static async createMultiPayment(sender: string, identifier: string, chainId: "mainnet" | "devnet" | "testnet", rawInputs: RawPaymentInput[]) {
+    const paymentInputs = rawInputs.map((rawInput) => {
+      const { receivers, cancellable, name, totalAmount, cliffDateInMiliseconds, cliffAmount, endDateInMiliseconds, frequency } = rawInput;
+      const cliffRelease = {
+        startDate: createDateFromTimestampMiliseconds(cliffDateInMiliseconds - 1e3),
+        endDate: createDateFromTimestampMiliseconds(cliffDateInMiliseconds),
+        amount: cliffAmount,
+        duration: DEFAULT_FREQUENCY_SECONDS,
+      };
+      const vestingReleases = getReleases(
+        cliffDateInMiliseconds,
+        endDateInMiliseconds,
+        bigNumberToPrettyString(new BigNumber(totalAmount).minus(new BigNumber(cliffAmount))),
+        frequency
+      );
+      return {
+        receivers,
+        cancellable,
+        name,
+        type: PaymentTypeAttributes.Vesting,
+        releases: [cliffRelease, ...vestingReleases],
+      };
+    });
+    const multiPaymentQuery = await PulsarTransactions.getPulsarPaymentMultiTransaction(sender, identifier, chainId, paymentInputs);
+    return multiPaymentQuery;
   }
 
   static async getFee(chainId: "mainnet" | "devnet" | "testnet") {
@@ -203,14 +231,14 @@ export class PulsarTransactions {
     try {
       const delegateUrl = getFeatureUrl(chainId, "delegate");
 
-      const { data: stakeTransaction } = await axios.post(delegateUrl, {
+      const { data: delegateTransaction } = await axios.post(delegateUrl, {
         address,
         amount,
       });
 
       return {
-        data: stakeTransaction,
-        success: stakeTransaction !== undefined,
+        data: delegateTransaction,
+        success: delegateTransaction !== undefined,
       };
     } catch (err) {
       return {

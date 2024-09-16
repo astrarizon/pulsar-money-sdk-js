@@ -1,26 +1,9 @@
-import {
-  Account,
-  GasEstimator,
-  IAddress,
-  INonce,
-  IPlainTransactionObject,
-  ITransactionValue,
-  TokenTransfer,
-  Transaction,
-  TransactionPayload,
-  TransferTransactionsFactory,
-} from "@multiversx/sdk-core/out";
+import { Account, IAddress, INonce, IPlainTransactionObject, ITransactionValue, TokenTransfer, Transaction, TransactionPayload } from "@multiversx/sdk-core/out";
 import { GAS_LIMIT } from "../config";
 import { TransactionFactory, getAccount, getNetworkProvider } from "../utils";
 
 export class TransactionsUtils {
-  static async createSendEgld(
-    amount: number,
-    senderAddress: IAddress,
-    receiverAddress: IAddress,
-    currentChain: "testnet" | "devnet" | "mainnet",
-    message = ""
-  ) {
+  static async createSendEgld(amount: number, senderAddress: IAddress, receiverAddress: IAddress, currentChain: "testnet" | "devnet" | "mainnet", message = "") {
     const extraGasIfNeeded = message ? message.length * 1500 : 0;
 
     const egldAmount = TokenTransfer.egldFromAmount(amount);
@@ -59,15 +42,7 @@ export class TransactionsUtils {
 
     const finalPayload = extraPayload ? `${payload.getData()}@${extraPayload}` : `${payload.getData()}`;
 
-    return this.createFinalTransaction(
-      senderAccount.nonce,
-      undefined,
-      receiverAddress,
-      senderAccount.address,
-      GAS_LIMIT,
-      new TransactionPayload(finalPayload),
-      currentChain
-    );
+    return this.createFinalTransaction(senderAccount.nonce, undefined, receiverAddress, senderAccount.address, GAS_LIMIT, new TransactionPayload(finalPayload), currentChain);
   }
 
   private static createFinalTransaction(

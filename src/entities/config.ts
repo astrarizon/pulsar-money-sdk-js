@@ -5,8 +5,8 @@ interface IBASE_URLS {
 }
 
 export const BASE_URLS: IBASE_URLS = {
-  mainnet: "https://pulsar-money-prod.herokuapp.com",
-  devnet: "https://pulsar-money-devnet.herokuapp.com",
+  mainnet: "http://localhost:3005",
+  devnet: "https://pulsar-money-devnet-cc4086f88527.herokuapp.com",
   testnet: "https://pulsar-money-testnet.herokuapp.com",
 };
 
@@ -16,7 +16,7 @@ export const MultiversxApiUrls = {
   testnet: "https://testnet-api.elrond.com",
 };
 
-export type FEATURE_TYPE = "create_payment" | "claim_payment" | "cancel_payment" | "delegate";
+export type FEATURE_TYPE = "create_payment" | "claim_payment" | "cancel_payment" | "delegate" | "create_multi";
 
 export const getContractAddress = (chain: "testnet" | "devnet" | "mainnet") => {
   switch (chain) {
@@ -33,7 +33,6 @@ export const getContractAddress = (chain: "testnet" | "devnet" | "mainnet") => {
 
 export const getFeatureUrl = (chain: "testnet" | "devnet" | "mainnet", feature: FEATURE_TYPE) => {
   const url = BASE_URLS[chain];
-
   switch (feature) {
     case "create_payment":
       return `${url}${CREATE_PULSAR_PAYMENT_ENDPOINT}`;
@@ -43,12 +42,15 @@ export const getFeatureUrl = (chain: "testnet" | "devnet" | "mainnet", feature: 
       return `${url}${CANCEL_PULSAR_PAYMENT_ENDPOINT}`;
     case "delegate":
       return `${url}${DELEGATE_ENDPOINT}`;
+    case "create_multi":
+      return `${url}${CREATE_MULTI_PULSAR_PAYMENT_ENDPOINT}`;
     default:
       throw new Error(`Invalid feature type. ${feature}`);
   }
 };
 
 export const CREATE_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/create`;
+export const CREATE_MULTI_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/create-multi`;
 export const CLAIM_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/claim`;
 export const CANCEL_PULSAR_PAYMENT_ENDPOINT = `/transaction/payment/cancel`;
 export const GET_FEE_ENDPOINT = `/transaction/payment/get-fee`;
