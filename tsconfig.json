@@ -1,21 +1,21 @@
 {
-	"compilerOptions": {
-		"module": "CommonJS",
-		"target": "es2015",
-		"outDir": "./lib",
-		"lib": ["ES2015", "DOM"],
-		"sourceMap": true,
-		"allowJs": true,
-		"strict": true,
-		"strictPropertyInitialization": true,
-		"strictNullChecks": true,
-		"skipLibCheck": true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUnusedParameters": true,
-		"esModuleInterop": true,
-		"declaration": true
-	},
-	"include": ["src/**/*"],
-	"exclude": ["node_modules", "test", "**/*spec.ts"]
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "es2015",
+    "outDir": "./lib",
+    "lib": ["ES2015", "DOM"],
+    "sourceMap": true,
+    "allowJs": true,
+    "strict": true,
+    "strictPropertyInitialization": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedParameters": true,
+    "esModuleInterop": true,
+    "declaration": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "test", "**/*spec.ts"]
 }
