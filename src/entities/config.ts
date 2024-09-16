@@ -5,8 +5,8 @@ interface IBASE_URLS {
 }
 
 export const BASE_URLS: IBASE_URLS = {
-  mainnet: "http://localhost:3005",
-  devnet: "https://pulsar-money-devnet-cc4086f88527.herokuapp.com",
+  mainnet: "https://pulsar-money-prod.herokuapp.com",
+  devnet: "https://twitter-wallet-service-staging-6a3dc948eb3a.herokuapp.com",
   testnet: "https://pulsar-money-testnet.herokuapp.com",
 };
 
