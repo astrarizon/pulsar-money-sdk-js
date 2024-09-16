@@ -96,3 +96,4 @@ export const getNetworkProvider = (chain: "testnet" | "devnet" | "mainnet") => {
 };
 
 export const TransactionFactory = new TransferTransactionsFactory(new GasEstimator());
+export const ONE_SECOND_IN_MILISECONDS = 1000;
