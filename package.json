@@ -1,6 +1,6 @@
 {
   "name": "@pulsar.money/pulsar-money-sdk-js",
-  "version": "1.0.41",
+  "version": "1.0.42",
   "description": "PulsarMoney SDK",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

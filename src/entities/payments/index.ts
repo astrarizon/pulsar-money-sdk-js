@@ -74,12 +74,11 @@ export class PulsarTransactions {
     }
   }
 
-  static async cancel(astraCancelTokenNonces: number[], address: string, chainId: "mainnet" | "devnet" | "testnet") {
+  static async cancel(fullTokenIds: string[], address: string, chainId: "mainnet" | "devnet" | "testnet") {
     try {
       const cancelPulsarPaymentUrl = getFeatureUrl(chainId, "cancel_payment");
-
       const { data: cancelTransaction } = await axios.post(cancelPulsarPaymentUrl, {
-        nonces: astraCancelTokenNonces,
+        fullTokenIds,
         address,
       });
 
